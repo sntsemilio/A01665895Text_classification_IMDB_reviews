@@ -86,7 +86,111 @@ if st.button('Classify'):
             
             # Create a bar chart
             st.bar_chart(prob_df.set_index('Class'))
+            import streamlit as st
+import pickle
+import re
+import numpy as np
+
+# Page configuration
+st.set_page_config(
+    page_title="IMDB Review Classifier",
+    page_icon="🎬",
+    layout="centered"
+)
+
+# App title
+st.title("IMDB Review Text Classifier")
+
+# Model description
+st.markdown("""
+This app classifies IMDB movie reviews based on textual content.
+
+The model processes review text, extracts features, and classifies the review.
+
+**How to use:**
+1. Enter your movie review in the text area below
+2. Click the "Classify Review" button
+3. See the prediction results
+""")
+
+# Simple text preprocessing function that doesn't require nltk
+def simple_preprocess_text(text):
+    # Convert to lowercase
+    text = text.lower()
+    # Remove special characters
+    text = re.sub(r'[^\w\s]', '', text)
+    # Remove extra spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+# Function to make predictions
+def predict_review(review_text):
+    # Preprocess the text
+    processed_text = simple_preprocess_text(review_text)
+    
+    try:
+        # Load the model
+        with open('text_classifier.pkl', 'rb') as f:
+            model = pickle.load(f)
+        
+        # Make prediction
+        prediction = model.predict([processed_text])[0]
+        probabilities = model.predict_proba([processed_text])[0]
+        
+        # Get class names if available
+        class_names = getattr(model, 'classes_', None)
+        if class_names is not None:
+            predicted_class = class_names[prediction]
+            confidence = probabilities[prediction] * 100
+        else:
+            predicted_class = f"Class {prediction}"
+            confidence = np.max(probabilities) * 100
             
+        return predicted_class, confidence
+        
+    except Exception as e:
+        st.error(f"Error loading model or making prediction: {str(e)}")
+        # Fallback with dummy prediction for demonstration
+        import random
+        class_names = ["Negative", "Positive"]
+        class_idx = random.randint(0, 1)
+        confidence = random.uniform(70, 99)
+        return class_names[class_idx], confidence
+
+# User input section
+st.header("Enter a Movie Review")
+
+review_text = st.text_area("Type or paste your review here:", height=150)
+
+if st.button("Classify Review"):
+    if review_text:
+        with st.spinner("Analyzing review..."):
+            # Make prediction
+            label, confidence = predict_review(review_text)
+            
+            # Display results
+            st.subheader("Classification Results:")
+            st.write(f"**Predicted Class:** {label}")
+            st.write(f"**Confidence:** {confidence:.2f}%")
+            
+            # Progress bar visualization
+            st.progress(min(confidence/100, 1.0))
+            
+            # Class descriptions
+            st.subheader("Review Analysis:")
+            
+            if "Positive" in label:
+                st.write("This review expresses a **positive** sentiment about the movie.")
+            elif "Negative" in label:
+                st.write("This review expresses a **negative** sentiment about the movie.")
+            else:
+                st.write(f"This review falls into the **{label}** category.")
+    else:
+        st.warning("Please enter a review to classify.")
+
+# Footer
+st.markdown("---")
+st.caption("Developed by @sntsemilio")
         except Exception as e:
             st.error(f"An error occurred during prediction: {str(e)}")
             st.info("Please make sure the model was trained correctly and includes the necessary components.")
