@@ -9,34 +9,47 @@ st.set_page_config(
     layout="centered"
 )
 
-# App title
+# App title and explanation
 st.title("IMDB Review Text Classifier")
-
-# Information about demo mode
-st.info("This app is running in demo mode as the classification model requires Keras which is not installed.")
+st.markdown("""
+## Demo Mode
+This application is currently running in demonstration mode. 
+The actual model requires TensorFlow/Keras which is not compatible with the current Python environment.
+""")
 
 # Model description
 st.markdown("""
-This app normally classifies IMDB movie reviews based on textual content.
-Currently showing demo predictions only.
+### About This App
+This app demonstrates how IMDB movie reviews can be classified based on their textual content.
+In a fully functional version, it would use a machine learning model trained on thousands of reviews.
 
 **How to use:**
 1. Enter your movie review in the text area below
 2. Click the "Classify Review" button
-3. See the demo prediction results
+3. See the demonstration results
 """)
 
 # User input section
 st.header("Enter a Movie Review")
-
 review_text = st.text_area("Type or paste your review here:", height=150)
 
 # Function for demo predictions
 def get_demo_prediction():
-    classes = ["Positive", "Negative"]
-    pred_idx = random.randint(0, 1)
-    confidence = random.uniform(70, 95)
-    return classes[pred_idx], confidence
+    # Simple keyword-based "prediction" for demo purposes
+    review = review_text.lower()
+    positive_words = ['good', 'great', 'excellent', 'amazing', 'love', 'enjoyed', 'best']
+    negative_words = ['bad', 'terrible', 'awful', 'waste', 'hate', 'worst', 'boring']
+    
+    pos_count = sum(1 for word in positive_words if word in review)
+    neg_count = sum(1 for word in negative_words if word in review)
+    
+    if pos_count > neg_count:
+        return "Positive", 65 + random.uniform(0, 30)
+    elif neg_count > pos_count:
+        return "Negative", 65 + random.uniform(0, 30)
+    else:
+        # If tied or no keywords found, return random
+        return random.choice(["Positive", "Negative"]), 50 + random.uniform(0, 25)
 
 if st.button("Classify Review"):
     if review_text:
@@ -45,17 +58,27 @@ if st.button("Classify Review"):
             prediction, confidence = get_demo_prediction()
             
             # Display results
-            st.subheader("Demo Classification Results:")
+            st.subheader("Classification Results:")
             st.write(f"**Predicted Class:** {prediction}")
             st.write(f"**Confidence:** {confidence:.2f}%")
             
             # Progress bar visualization
             st.progress(min(confidence/100, 1.0))
             
-            st.markdown("**Note:** This is a demonstration prediction only.")
+            # Display demo notification
+            st.info("Note: This is a demonstration prediction based on simple keyword matching, not an actual ML model.")
     else:
         st.warning("Please enter a review to classify.")
 
 # Footer
 st.markdown("---")
+st.markdown("### How it would work with a real model")
+st.markdown("""
+In a production environment with TensorFlow/Keras available:
+1. Text would be preprocessed (tokenized, normalized)
+2. Features would be extracted using techniques like TF-IDF or word embeddings
+3. The trained model would predict sentiment or categories
+4. Results would be shown with actual model confidence scores
+""")
+
 st.caption("Developed by @sntsemilio")
