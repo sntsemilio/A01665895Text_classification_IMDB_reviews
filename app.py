@@ -24,6 +24,9 @@ This app classifies IMDB movie reviews based on textual content.
 3. See the prediction results
 """)
 
+# Show error message about missing Keras module
+st.error("Error loading model: No module named 'keras'. Using demo mode.")
+
 # Simple text preprocessing function
 def simple_preprocess_text(text):
     # Convert to lowercase
@@ -33,9 +36,6 @@ def simple_preprocess_text(text):
     # Remove extra spaces
     text = re.sub(r'\s+', ' ', text).strip()
     return text
-
-# Display error message about Keras
-st.error("Error loading model: No module named 'keras'. Using demo mode.")
 
 # Function to make predictions (demo mode only)
 def predict_review(text):
