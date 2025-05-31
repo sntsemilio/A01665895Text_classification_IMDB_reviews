@@ -10,15 +10,16 @@ st.set_page_config(
     layout="centered"
 )
 
+# App title
 st.title("IMDB Review Text Classifier")
-st.markdown("""
-## Demo Mode
-This application is currently running in demonstration mode. 
-The actual model requires TensorFlow/Keras which is not compatible with the current Python environment.
-""")
 
+# Information about demo mode
+st.info("This app is running in demo mode as the classification model requires Keras which is not installed.")
+
+# Model description
 st.markdown("""
-This app classifies IMDB movie reviews based on textual content.
+This app normally classifies IMDB movie reviews based on textual content.
+Currently showing demo predictions only.
 
 How to use:
 1. Enter your movie review in the text area below
@@ -40,8 +41,14 @@ except Exception as e:
     model = None
 
 st.header("Enter a Movie Review")
-
 review_text = st.text_area("Type or paste your review here:", height=150)
+
+# Function for demo predictions
+def get_demo_prediction():
+    classes = ["Positive", "Negative"]
+    pred_idx = random.randint(0, 1)
+    confidence = random.uniform(70, 95)
+    return classes[pred_idx], confidence
 
 if st.button("Classify Review"):
     if not model:
@@ -50,28 +57,30 @@ if st.button("Classify Review"):
         st.warning("Please enter a review to classify.")
     else:
         with st.spinner("Analyzing review..."):
-            try:
-                # Process text
-                processed_text = simple_preprocess_text(review_text)
-                
-                # Make prediction using model
-                prediction = model.predict([processed_text])[0]
-                probabilities = model.predict_proba([processed_text])[0]
-                confidence = np.max(probabilities) * 100
-                
-                # Display results
-                st.subheader("Classification Results:")
-                st.write(f"**Predicted Sentiment:** {prediction}")
-                st.write(f"**Confidence:** {confidence:.2f}%")
-                
-                # Progress bar visualization
-                st.progress(min(confidence/100, 1.0))
-                
-            except Exception:
-                st.error("Unable to process the review. The model could not be loaded or used.")
+            # Generate demo prediction
+            prediction, confidence = get_demo_prediction()
+            
+            # Display results
+            st.subheader("Demo Classification Results:")
+            st.write(f"**Predicted Class:** {prediction}")
+            st.write(f"**Confidence:** {confidence:.2f}%")
+            
+            # Progress bar visualization
+            st.progress(min(confidence/100, 1.0))
+            
+            st.markdown("**Note:** This is a demonstration prediction only.")
     else:
         st.warning("Please enter a review to classify.")
 
 # Footer
 st.markdown("---")
+st.markdown("### How it would work with a real model")
+st.markdown("""
+In a production environment with TensorFlow/Keras available:
+1. Text would be preprocessed (tokenized, normalized)
+2. Features would be extracted using techniques like TF-IDF or word embeddings
+3. The trained model would predict sentiment or categories
+4. Results would be shown with actual model confidence scores
+""")
+
 st.caption("Developed by @sntsemilio")
