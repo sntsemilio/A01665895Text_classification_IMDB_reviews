@@ -1,84 +1,54 @@
 import streamlit as st
-import re
-import random
+import numpy as np
+import pickle
+import os
 
-# Page configuration
 st.set_page_config(
-    page_title="IMDB Review Classifier",
+    page_title="IMDB Review Sentiment Analysis",
     page_icon="🎬",
     layout="centered"
 )
 
-# App title and explanation
-st.title("IMDB Review Text Classifier")
+st.title("IMDB Review Sentiment Analysis")
 st.markdown("""
-## Demo Mode
-This application is currently running in demonstration mode. 
-The actual model requires TensorFlow/Keras which is not compatible with the current Python environment.
+This app classifies IMDB movie reviews as **Positive** or **Negative** using a machine learning model trained on review text data.
 """)
 
-# Model description
-st.markdown("""
-### About This App
-This app demonstrates how IMDB movie reviews can be classified based on their textual content.
-In a fully functional version, it would use a machine learning model trained on thousands of reviews.
+@st.cache_resource
+def load_model_and_vectorizer():
+    try:
+        with open('A01665895_imdb_review_classifier.pkl', 'rb') as f:
+            model = pickle.load(f)
+        with open('imdb_vectorizer.pkl', 'rb') as f:
+            vectorizer = pickle.load(f)
+        return model, vectorizer
+    except Exception as e:
+        st.error(f"Error loading model or vectorizer: {e}. Please ensure both .pkl files are present.")
+        st.stop()
 
-**How to use:**
-1. Enter your movie review in the text area below
-2. Click the "Classify Review" button
-3. See the demonstration results
-""")
+def preprocess(text, vectorizer):
+    return vectorizer.transform([text])
 
 # User input section
 st.header("Enter a Movie Review")
 review_text = st.text_area("Type or paste your review here:", height=150)
 
-# Function for demo predictions
-def get_demo_prediction():
-    # Simple keyword-based "prediction" for demo purposes
-    review = review_text.lower()
-    positive_words = ['good', 'great', 'excellent', 'amazing', 'love', 'enjoyed', 'best']
-    negative_words = ['bad', 'terrible', 'awful', 'waste', 'hate', 'worst', 'boring']
-    
-    pos_count = sum(1 for word in positive_words if word in review)
-    neg_count = sum(1 for word in negative_words if word in review)
-    
-    if pos_count > neg_count:
-        return "Positive", 65 + random.uniform(0, 30)
-    elif neg_count > pos_count:
-        return "Negative", 65 + random.uniform(0, 30)
-    else:
-        # If tied or no keywords found, return random
-        return random.choice(["Positive", "Negative"]), 50 + random.uniform(0, 25)
-
 if st.button("Classify Review"):
-    if review_text:
+    if review_text.strip():
         with st.spinner("Analyzing review..."):
-            # Generate demo prediction
-            prediction, confidence = get_demo_prediction()
-            
-            # Display results
+            model, vectorizer = load_model_and_vectorizer()
+            X_input = preprocess(review_text, vectorizer)
+            pred_proba = model.predict_proba(X_input)
+            pred = np.argmax(pred_proba)
+            confidence = float(np.max(pred_proba)) * 100
+            sentiment = "Positive" if pred == 1 else "Negative"
+
             st.subheader("Classification Results:")
-            st.write(f"**Predicted Class:** {prediction}")
+            st.write(f"**Predicted Class:** {sentiment}")
             st.write(f"**Confidence:** {confidence:.2f}%")
-            
-            # Progress bar visualization
             st.progress(min(confidence/100, 1.0))
-            
-            # Display demo notification
-            st.info("Note: This is a demonstration prediction based on simple keyword matching, not an actual ML model.")
     else:
         st.warning("Please enter a review to classify.")
 
-# Footer
 st.markdown("---")
-st.markdown("### How it would work with a real model")
-st.markdown("""
-In a production environment with TensorFlow/Keras available:
-1. Text would be preprocessed (tokenized, normalized)
-2. Features would be extracted using techniques like TF-IDF or word embeddings
-3. The trained model would predict sentiment or categories
-4. Results would be shown with actual model confidence scores
-""")
-
 st.caption("Developed by @sntsemilio")
