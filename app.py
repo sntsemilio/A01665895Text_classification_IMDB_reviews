@@ -17,7 +17,7 @@ This app classifies IMDB movie reviews as **Positive** or **Negative** using a m
 @st.cache_resource
 def load_model_and_vectorizer():
     try:
-        with open('A01665895_imdb_review_classifier.pkl', 'rb') as f:
+        with open('text_classifier.pkl', 'rb') as f:
             model = pickle.load(f)
         with open('imdb_vectorizer.pkl', 'rb') as f:
             vectorizer = pickle.load(f)
