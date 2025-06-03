@@ -5,9 +5,8 @@ with open('vocab.txt', 'r', encoding='utf-8') as f:
 # Remove ALL '' and '[UNK]' from everywhere
 words = [w for w in words if w != '' and w != '[UNK]']
 
-# Rebuild vocab: line 1 blank, line 2 [UNK], rest is vocab
 with open('vocab.txt', 'w', encoding='utf-8') as f:
-    f.write('\n')          # line 1: blank
-    f.write('[UNK]\n')     # line 2: [UNK]
+    f.write('\n')          
+    f.write('[UNK]\n')     
     for word in words:
         f.write(f'{word}\n')
