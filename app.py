@@ -29,7 +29,7 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Most compatible: numpy array of shape (1,) with dtype=str for TextVectorization input
+            # Use numpy array of shape (1,) with dtype=str for maximum compatibility with Keras TextVectorization
             input_data = np.array([review_text.strip()], dtype=str)
             try:
                 pred = model.predict(input_data)
@@ -41,9 +41,11 @@ if st.button("Classify Review"):
                 st.write(f"**Confidence:** {confidence:.2f}%")
                 st.progress(min(confidence/100, 1.0))
             except Exception as e:
-                st.error(f"Prediction failed: {e}\n\n"
-                         "If this persists, check that your model expects raw review text as input. "
-                         "If it expects pre-vectorized data, preprocessing must be adjusted.")
+                st.error(
+                    f"Prediction failed: {e}\n\n"
+                    "If this persists, check that your model expects raw review text as input. "
+                    "If it expects pre-vectorized data, preprocessing must be adjusted."
+                )
     else:
         st.warning("Please enter a review to classify.")
 
