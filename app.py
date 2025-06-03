@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 from tensorflow import keras
+from tensorflow.keras import layers
 
 st.set_page_config(
     page_title="IMDB Review Classifier",
@@ -22,6 +23,19 @@ def load_model():
         st.error(f"Error loading model: {e}. Please ensure the file 'text_classifier.h5' is present.")
         st.stop()
 
+@st.cache_resource
+def get_vectorizer():
+    # Load vocabulary
+    with open("vocab.txt", "r") as f:
+        vocab = [line.strip() for line in f]
+    vectorize_layer = layers.TextVectorization(
+        max_tokens=10000,
+        output_mode='int',
+        output_sequence_length=200,
+        vocabulary=vocab
+    )
+    return vectorize_layer
+
 st.header("Enter a Movie Review")
 review_text = st.text_area("Type or paste your review here:", height=150)
 
@@ -29,8 +43,9 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Use dtype=object for legacy Keras/TensorFlow string input compatibility!
-            input_data = np.array([review_text.strip()], dtype=object)
+            vectorize_layer = get_vectorizer()
+            # Vectorize input (returns shape (1, 200))
+            input_data = vectorize_layer(np.array([review_text.strip()]))
             try:
                 pred = model.predict(input_data)
                 label = "Positive" if pred[0][0] > 0.5 else "Negative"
@@ -43,7 +58,7 @@ if st.button("Classify Review"):
             except Exception as e:
                 st.error(
                     f"Prediction failed: {e}\n\n"
-                    "If this persists, check that your model expects raw review text as input. "
+                    "If this persists, check that your model expects the correct input shape. "
                     "If it expects pre-vectorized data, preprocessing must be adjusted."
                 )
     else:
