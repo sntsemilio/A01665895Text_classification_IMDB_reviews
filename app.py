@@ -28,8 +28,8 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Pass a plain python list of strings
-            pred = model.predict([review_text])
+            # Try tuple of string (batch of 1)
+            pred = model.predict((review_text.strip(),))
             label = "Positive" if pred[0][0] > 0.5 else "Negative"
             confidence = float(pred[0][0]) * 100 if label == "Positive" else (1 - float(pred[0][0])) * 100
 
