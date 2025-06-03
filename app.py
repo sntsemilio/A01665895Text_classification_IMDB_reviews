@@ -1,5 +1,4 @@
 import streamlit as st
-import numpy as np
 from tensorflow import keras
 
 st.set_page_config(
@@ -29,9 +28,8 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Use a numpy array of shape (1, 1) with dtype object, as required by Keras TextVectorization
-            input_arr = np.array([[review_text]], dtype=object)
-            pred = model.predict(input_arr)
+            # Pass a plain python list of strings
+            pred = model.predict([review_text])
             label = "Positive" if pred[0][0] > 0.5 else "Negative"
             confidence = float(pred[0][0]) * 100 if label == "Positive" else (1 - float(pred[0][0])) * 100
 
