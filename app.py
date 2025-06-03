@@ -1,4 +1,5 @@
 import streamlit as st
+import numpy as np
 from tensorflow import keras
 
 st.set_page_config(
@@ -28,15 +29,21 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Try tuple of string (batch of 1)
-            pred = model.predict((review_text.strip(),))
-            label = "Positive" if pred[0][0] > 0.5 else "Negative"
-            confidence = float(pred[0][0]) * 100 if label == "Positive" else (1 - float(pred[0][0])) * 100
+            # Most compatible: numpy array of shape (1,) with dtype=str
+            input_data = np.array([review_text.strip()], dtype=str)
+            try:
+                pred = model.predict(input_data)
+                label = "Positive" if pred[0][0] > 0.5 else "Negative"
+                confidence = float(pred[0][0]) * 100 if label == "Positive" else (1 - float(pred[0][0])) * 100
 
-            st.subheader("Classification Results:")
-            st.write(f"**Predicted Class:** {label}")
-            st.write(f"**Confidence:** {confidence:.2f}%")
-            st.progress(min(confidence/100, 1.0))
+                st.subheader("Classification Results:")
+                st.write(f"**Predicted Class:** {label}")
+                st.write(f"**Confidence:** {confidence:.2f}%")
+                st.progress(min(confidence/100, 1.0))
+            except Exception as e:
+                st.error(f"Prediction failed: {e}\n\n"
+                         "If this persists, check that your model expects raw review text as input. "
+                         "If it expects pre-vectorized data, preprocessing must be adjusted.")
     else:
         st.warning("Please enter a review to classify.")
 
