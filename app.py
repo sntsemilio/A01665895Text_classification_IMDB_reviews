@@ -4,30 +4,25 @@ import pickle
 import os
 
 st.set_page_config(
-    page_title="IMDB Review Sentiment Analysis",
+    page_title="IMDB Review Classifier",
     page_icon="🎬",
     layout="centered"
 )
 
-st.title("IMDB Review Sentiment Analysis")
+st.title("IMDB Review Classifier")
 st.markdown("""
-This app classifies IMDB movie reviews as **Positive** or **Negative** using a machine learning model trained on review text data.
+This app classifies IMDB movie reviews as **Good** or **Bad** using a deep learning model trained on review text data.
 """)
 
 @st.cache_resource
-def load_model_and_vectorizer():
+def load_model():
     try:
         with open('text_classifier.pkl', 'rb') as f:
             model = pickle.load(f)
-        with open('imdb_vectorizer.pkl', 'rb') as f:
-            vectorizer = pickle.load(f)
-        return model, vectorizer
+        return model
     except Exception as e:
-        st.error(f"Error loading model or vectorizer: {e}. Please ensure both .pkl files are present.")
+        st.error(f"Error loading model: {e}. Please ensure the file 'text_classifier.pkl' is present.")
         st.stop()
-
-def preprocess(text, vectorizer):
-    return vectorizer.transform([text])
 
 # User input section
 st.header("Enter a Movie Review")
@@ -36,17 +31,22 @@ review_text = st.text_area("Type or paste your review here:", height=150)
 if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
-            model, vectorizer = load_model_and_vectorizer()
-            X_input = preprocess(review_text, vectorizer)
-            pred_proba = model.predict_proba(X_input)
-            pred = np.argmax(pred_proba)
-            confidence = float(np.max(pred_proba)) * 100
-            sentiment = "Positive" if pred == 1 else "Negative"
+            model = load_model()
+            # If your model expects simple text input (e.g., it's a pipeline with text preprocessing)
+            try:
+                pred = model.predict([review_text])
+                # If model outputs class indices (e.g., 0/1), map them to labels
+                if hasattr(model, "classes_"):
+                    classes = list(model.classes_)
+                    label = classes[pred[0]]
+                else:
+                    label = "Good" if pred[0] == 1 else "Bad"
+            except Exception as e:
+                st.error(f"Model prediction error: {e}")
+                st.stop()
 
             st.subheader("Classification Results:")
-            st.write(f"**Predicted Class:** {sentiment}")
-            st.write(f"**Confidence:** {confidence:.2f}%")
-            st.progress(min(confidence/100, 1.0))
+            st.write(f"**Predicted Class:** {label}")
     else:
         st.warning("Please enter a review to classify.")
 
