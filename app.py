@@ -21,9 +21,9 @@ def get_vectorizer():
     with open("vocab.txt", "r") as f:
         vocab = [line.strip() for line in f]
     vectorizer = TextVectorization(
-        max_tokens=10000,            # MUST match your training config!
+        max_tokens=10000,           
         output_mode='int',
-        output_sequence_length=200,  # MUST match your training config!
+        output_sequence_length=200,  
         vocabulary=vocab
     )
     return vectorizer
@@ -36,7 +36,6 @@ if st.button("Classify Review"):
         with st.spinner("Analyzing review..."):
             model = load_model()
             vectorizer = get_vectorizer()
-            # Vectorize the raw text input
             input_data = vectorizer(np.array([review_text.strip()]))
             try:
                 pred = model.predict(input_data)
