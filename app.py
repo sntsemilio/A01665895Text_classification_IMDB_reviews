@@ -29,8 +29,9 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Use a numpy array with dtype=object for string inputs to Keras TextVectorization
-            pred = model.predict(np.array([review_text], dtype=object))
+            # Use a numpy array of shape (1, 1) with dtype object, as required by Keras TextVectorization
+            input_arr = np.array([[review_text]], dtype=object)
+            pred = model.predict(input_arr)
             label = "Positive" if pred[0][0] > 0.5 else "Negative"
             confidence = float(pred[0][0]) * 100 if label == "Positive" else (1 - float(pred[0][0])) * 100
 
