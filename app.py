@@ -18,7 +18,6 @@ def load_model():
 
 @st.cache_resource
 def get_vectorizer():
-    # Load vocabulary from vocab.txt
     with open("vocab.txt", "r") as f:
         vocab = [line.strip() for line in f]
     vectorizer = TextVectorization(
