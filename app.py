@@ -25,13 +25,12 @@ def load_model():
 
 @st.cache_resource
 def get_vectorizer():
-    # Load vocabulary
     with open("vocab.txt", "r") as f:
         vocab = [line.strip() for line in f]
     vectorize_layer = layers.TextVectorization(
-        max_tokens=10000,
+        max_tokens=10000,            # Must match training
         output_mode='int',
-        output_sequence_length=200,
+        output_sequence_length=200,  # Must match training
         vocabulary=vocab
     )
     return vectorize_layer
@@ -44,7 +43,6 @@ if st.button("Classify Review"):
         with st.spinner("Analyzing review..."):
             model = load_model()
             vectorize_layer = get_vectorizer()
-            # Vectorize input (returns shape (1, 200))
             input_data = vectorize_layer(np.array([review_text.strip()]))
             try:
                 pred = model.predict(input_data)
