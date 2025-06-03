@@ -29,7 +29,7 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            # Most compatible: numpy array of shape (1,) with dtype=str
+            # Most compatible: numpy array of shape (1,) with dtype=str for TextVectorization input
             input_data = np.array([review_text.strip()], dtype=str)
             try:
                 pred = model.predict(input_data)
