@@ -1,6 +1,6 @@
 import streamlit as st
 import numpy as np
-import pickle
+from tensorflow import keras
 
 st.set_page_config(
     page_title="IMDB Review Classifier",
@@ -16,11 +16,10 @@ This app classifies IMDB movie reviews as **Positive** or **Negative** using a d
 @st.cache_resource
 def load_model():
     try:
-        with open("text_classifier.pkl", "rb") as f:
-            model = pickle.load(f)
+        model = keras.models.load_model("text_classifier.h5")
         return model
     except Exception as e:
-        st.error(f"Error loading model: {e}. Please ensure the file 'text_classifier.pkl' is present.")
+        st.error(f"Error loading model: {e}. Please ensure the file 'text_classifier.h5' is present.")
         st.stop()
 
 st.header("Enter a Movie Review")
@@ -30,21 +29,9 @@ if st.button("Classify Review"):
     if review_text.strip():
         with st.spinner("Analyzing review..."):
             model = load_model()
-            try:
-                # For models that require a numpy array as input
-                pred = model.predict([review_text])
-                # If output is probability, threshold at 0.5
-                if pred.shape[-1] == 1 or len(pred.shape) == 1:
-                    label = "Positive" if float(pred[0]) > 0.5 else "Negative"
-                    confidence = float(pred[0]) * 100 if label == "Positive" else (1 - float(pred[0])) * 100
-                else:
-                    # If output is class logits
-                    idx = np.argmax(pred)
-                    label = "Positive" if idx == 1 else "Negative"
-                    confidence = float(pred[0][idx]) * 100
-            except Exception as e:
-                st.error(f"Model prediction error: {e}")
-                st.stop()
+            pred = model.predict([review_text])
+            label = "Positive" if pred[0][0] > 0.5 else "Negative"
+            confidence = float(pred[0][0]) * 100 if label == "Positive" else (1 - float(pred[0][0])) * 100
 
             st.subheader("Classification Results:")
             st.write(f"**Predicted Class:** {label}")
